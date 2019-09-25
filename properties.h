@@ -16,14 +16,12 @@ class GeometryParameters
 {
 public:
     GeometryParameters() = delete;
-    GeometryParameters(int n,
-                       std::vector<double> thickness,
-                       std::vector<double> angle,
-                       double z_c);
-	int n;
-	std::vector<double> thickness;
-	std::vector<double> angle;
-	double z_c;
+    GeometryParameters(
+                       double thickness,
+                       double angle
+                       );
+    double thickness;
+	double angle;
 };
 
 class ModulusParameters
@@ -52,12 +50,11 @@ public:
 class AllParameters : public GeometryParameters, public ModulusParameters, public StrengthParameters
 {
 public:
-    AllParameters() = delete;
+    AllParameters();
     std::string material;
-    AllParameters(int n,
-                  std::vector<double> thickness,
-                  std::vector<double> angle,
-                  double z_c,
+    AllParameters(
+                  double thickness,
+                  double angle,
                   std::string material);
 };
 

@@ -6,15 +6,13 @@
  */
 #include "properties.h"
 
-GeometryParameters::GeometryParameters(int n,
-                                       std::vector<double> thickness,
-                                       std::vector<double> angle,
-                                       double z_c)
+GeometryParameters::GeometryParameters(
+                                       double thickness,
+                                       double angle
+                                       )
 :
-n(n),
 thickness(thickness),
-angle(angle),
-z_c(z_c)
+angle(angle)
 {}
 
 ModulusParameters::ModulusParameters(std::string material)
@@ -86,13 +84,12 @@ StrengthParameters::StrengthParameters(std::string material)
     }
 }
 
-AllParameters::AllParameters(int n,
-                             std::vector<double> thickness,
-                             std::vector<double> angle,
-                             double z_c,
+AllParameters::AllParameters(
+                             double thickness,
+                             double angle,
                              std::string material)
 :
-        GeometryParameters(n,thickness,angle,z_c),
+        GeometryParameters(thickness,angle),
         ModulusParameters(material),
         StrengthParameters(material),
         material(material)

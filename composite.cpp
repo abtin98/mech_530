@@ -10,49 +10,44 @@
 
 Composite::Composite(AllParameters parameters_input)
 :
-composite_type(composite_type),
 all_parameters(parameters_input)
 {
-    S_matrix.resize(3,std::vector<double>(3));
-    Q_matrix.resize(3,std::vector<double>(3));
+    on_axis_S_matrix.resize(3,std::vector<double>(3));
+    on_axis_Q_matrix.resize(3,std::vector<double>(3));
+    off_axis_S_matrix.resize(3,std::vector<double>(3));
+    off_axis_Q_matrix.resize(3,std::vector<double>(3));
+
+    on_axis_S_matrix = calculate_on_axis_S_matrix();
+    on_axis_Q_matrix = calculate_on_axis_Q_matrix();
+
+    //need to change this later
+    off_axis_Q_matrix = ModulusTransform::calculate_modulus_transform_on_to_off(all_parameters.angle,on_axis_Q_matrix);
+    off_axis_S_matrix = ComplianceTransform::calculate_compliance_transform_on_to_off(all_parameters.angle,on_axis_S_matrix);
+
 }
 
-void Composite::calculate_S_Q_matrices()
+std::vector<std::vector<double>> Composite::calculate_on_axis_S_matrix()
 {
 	double S_xx, S_xy, S_yy, S_ss;
-	double Q_xx, Q_xy, Q_yy, Q_ss;
+
 
 	S_xx = 1./all_parameters.E_x;
 	S_xy = -all_parameters.nu_x/all_parameters.E_x;
 	S_yy = 1./all_parameters.E_y;
 	S_ss = 1./all_parameters.E_s;
 
-	double m = 1./(1.-(all_parameters.nu_x * all_parameters.nu_x * all_parameters.E_y/all_parameters.E_x));
 
-	Q_xx = m * all_parameters.E_x;
-	Q_xy = m * all_parameters.nu_x * all_parameters.E_y;
-	Q_yy = m * all_parameters.E_y;
-	Q_ss = all_parameters.E_s;
+    on_axis_S_matrix[0][0] = S_xx;
+    on_axis_S_matrix[0][1] = S_xy;
+    on_axis_S_matrix[0][2] = 0;
+    on_axis_S_matrix[1][0] = S_xy;
+    on_axis_S_matrix[1][1] = S_yy;
+    on_axis_S_matrix[1][2] = 0;
+    on_axis_S_matrix[2][0] = 0;
+    on_axis_S_matrix[2][1] = 0;
+    on_axis_S_matrix[2][2] = S_ss;
 
-	S_matrix[0][0] = S_xx;
-    S_matrix[0][1] = S_xy;
-    S_matrix[0][2] = 0;
-    S_matrix[1][0] = S_xy;
-    S_matrix[1][1] = S_yy;
-    S_matrix[1][2] = 0;
-    S_matrix[2][0] = 0;
-    S_matrix[2][1] = 0;
-    S_matrix[2][2] = S_ss;
 
-    Q_matrix[0][0] = Q_xx;
-    Q_matrix[0][1] = Q_xy;
-    Q_matrix[0][2] = 0;
-    Q_matrix[1][0] = Q_xy;
-    Q_matrix[1][1] = Q_yy;
-    Q_matrix[1][2] = 0;
-    Q_matrix[2][0] = 0;
-    Q_matrix[2][1] = 0;
-    Q_matrix[2][2] = Q_ss;
 
 //	std::cout << "The S matrix is (GPa):" << std::endl
 //			  << S_xx << " | " << S_xy << " | " << 0 << std::endl
@@ -66,10 +61,37 @@ void Composite::calculate_S_Q_matrices()
 //				  <<  0 << " | " << 0 << " | " << Q_ss << std::endl
 //				  << "--------------------------------------------" << std::endl;
 
+    return on_axis_S_matrix;
 }
 
-void Composite::output_all()
+std::vector<std::vector<double>> Composite::calculate_on_axis_Q_matrix()
 {
+    double Q_xx, Q_xy, Q_yy, Q_ss;
+
+    double m = 1./(1.-(all_parameters.nu_x * all_parameters.nu_x * all_parameters.E_y/all_parameters.E_x));
+
+    Q_xx = m * all_parameters.E_x;
+    Q_xy = m * all_parameters.nu_x * all_parameters.E_y;
+    Q_yy = m * all_parameters.E_y;
+    Q_ss = all_parameters.E_s;
+
+    on_axis_Q_matrix[0][0] = Q_xx;
+    on_axis_Q_matrix[0][1] = Q_xy;
+    on_axis_Q_matrix[0][2] = 0;
+    on_axis_Q_matrix[1][0] = Q_xy;
+    on_axis_Q_matrix[1][1] = Q_yy;
+    on_axis_Q_matrix[1][2] = 0;
+    on_axis_Q_matrix[2][0] = 0;
+    on_axis_Q_matrix[2][1] = 0;
+    on_axis_Q_matrix[2][2] = Q_ss;
+
+    return on_axis_Q_matrix;
+}
+
+void Composite::output_all(int layer_number)
+{
+    std::cout << "Layer number: " << layer_number << std::endl;
+
 	std::cout << "The material used is " << all_parameters.material << std::endl;
 
 	std::cout << "Modulus parameters:" << std::endl
@@ -88,35 +110,22 @@ void Composite::output_all()
 			  << "--------------------------------------------" << std::endl;
 
     std::cout << "Geometric parameters:" << std::endl;
-    std::cout << "n = " << all_parameters.n << std::endl;
-    std::cout << "theta = [";
-    for (int i = 0; i < all_parameters.n; ++i)
-    {
-    	std::cout << all_parameters.angle[i] << " ";
-    }
-    std::cout << "]" << " degrees" <<std::endl;
+    std::cout << "theta = " << all_parameters.angle << " degrees" << std::endl;
 
-    std::cout << "ply thickness = [";
-        for (int i = 0; i < all_parameters.n; ++i)
-        {
-        	std::cout << all_parameters.thickness[i] << " ";
-        }
-    std::cout << "]" << "mm" <<std::endl;
-
-    std::cout << "z_c = " << all_parameters.z_c << "mm" << std::endl;
+    std::cout << "ply thickness = " << all_parameters.thickness << "mm" << std::endl;
     std::cout << "--------------------------------------------" << std::endl;
 
-    calculate_S_Q_matrices();
+    calculate_on_axis_S_matrix();
+    calculate_on_axis_Q_matrix();
 
-    MatrixOperations::output_matrix(S_matrix, "S", "GPa");
-    MatrixOperations::output_matrix(Q_matrix, "Q", "1/GPa");
+    //ModulusTransform::calculate_modulus_transform_on_to_off(all_parameters.angle,on_axis_Q_matrix);
+    //ComplianceTransform::calculate_compliance_transform_on_to_off(all_parameters.angle,on_axis_S_matrix);
 
+    MatrixOperations::output_matrix(on_axis_S_matrix, "on-axis S", "1/GPa");
+    MatrixOperations::output_matrix(on_axis_Q_matrix, "on-axis Q", "GPa");
 
-
-
-
-
-
+    MatrixOperations::output_matrix(off_axis_S_matrix, "off-axis S", "1/GPa");
+    MatrixOperations::output_matrix(off_axis_Q_matrix, "off-axis Q", "GPa");
 }
 
 

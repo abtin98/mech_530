@@ -5,4 +5,5 @@ project (mech_530)
 add_executable(mech_530 main.cpp
 			composite.cpp
 			properties.cpp
-			utilities.cpp)
+			utilities.cpp
+			laminate.cpp)

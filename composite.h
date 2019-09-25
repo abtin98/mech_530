@@ -15,16 +15,25 @@
 class Composite
 {
 public:
-	Composite() = delete;
+	Composite();
 	Composite(AllParameters parameters_input);
-	void calculate_S_Q_matrices();
-	void output_all();
+    using Matrix = std::vector<std::vector<double>>;
+	Matrix calculate_on_axis_S_matrix();
+	Matrix calculate_on_axis_Q_matrix();
+	//Matrix calculate_off_axis_S_matrix(Matrix on_axis_S_matrix, );
+	//Matrix calculate_off_axis_Q_matrix(Matrix on_axis_Q_matrix);
+
+	void output_all(int layer_number);
+
+    AllParameters all_parameters;
+    Matrix on_axis_S_matrix;
+    Matrix on_axis_Q_matrix;
+    Matrix off_axis_S_matrix;
+    Matrix off_axis_Q_matrix;
 
 
 private:
-	AllParameters all_parameters;
-	std::vector<std::vector<double>> S_matrix;
-	std::vector<std::vector<double>> Q_matrix;
+
 };
 
 
