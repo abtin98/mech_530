@@ -7,6 +7,7 @@
 
 #include "composite.h"
 #include "utilities.h"
+#include "properties.h"
 
 Composite::Composite(AllParameters parameters_input)
 :
@@ -115,17 +116,33 @@ void Composite::output_all(int layer_number)
     std::cout << "ply thickness = " << all_parameters.thickness << "mm" << std::endl;
     std::cout << "--------------------------------------------" << std::endl;
 
-    calculate_on_axis_S_matrix();
-    calculate_on_axis_Q_matrix();
+    MatrixOperations::output_vector(off_axis_stress,"off-axis stress","GPa");
+    MatrixOperations::output_vector(on_axis_stress,"on-axis stress","GPa");
+    MatrixOperations::output_vector(on_axis_strain,"on-axis strain","");
+
+    //calculate_on_axis_S_matrix();
+    //calculate_on_axis_Q_matrix();
 
     //ModulusTransform::calculate_modulus_transform_on_to_off(all_parameters.angle,on_axis_Q_matrix);
     //ComplianceTransform::calculate_compliance_transform_on_to_off(all_parameters.angle,on_axis_S_matrix);
 
-    MatrixOperations::output_matrix(on_axis_S_matrix, "on-axis S", "1/GPa");
-    MatrixOperations::output_matrix(on_axis_Q_matrix, "on-axis Q", "GPa");
+   // MatrixOperations::output_matrix(on_axis_S_matrix, "on-axis S", "1/GPa");
+   // MatrixOperations::output_matrix(on_axis_Q_matrix, "on-axis Q", "GPa");
 
-    MatrixOperations::output_matrix(off_axis_S_matrix, "off-axis S", "1/GPa");
-    MatrixOperations::output_matrix(off_axis_Q_matrix, "off-axis Q", "GPa");
+    //MatrixOperations::output_matrix(off_axis_S_matrix, "off-axis S", "1/GPa");
+    //MatrixOperations::output_matrix(off_axis_Q_matrix, "off-axis Q", "GPa");
+}
+
+void Composite::calculate_stresses_and_strains (std::vector<double> off_axis_strain)
+{
+
+    std::vector<std::vector<double>> stress_transform_off_to_on = StressTransformation::calculate_stress_transform_off_to_on(all_parameters.angle);
+    std::vector<std::vector<double>> strain_transform_off_to_on = StrainTransformation::calculate_strain_transform_off_to_on(all_parameters.angle);
+
+    on_axis_strain = MatrixOperations::vector_mult(strain_transform_off_to_on, off_axis_strain);
+    off_axis_stress = MatrixOperations::vector_mult(off_axis_Q_matrix, off_axis_strain);
+    on_axis_stress = MatrixOperations::vector_mult(on_axis_Q_matrix, off_axis_strain);
+
 }
 
 

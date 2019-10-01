@@ -12,13 +12,13 @@
 #include <array>
 #include <vector>
 #include <assert.h>
+#include "properties.h"
 
 
 using Matrix = std::vector<std::vector<double>>;
 
 namespace MatrixOperations
 {
-
 void output_matrix (Matrix matrix, std::string name, std::string units);
 
 void output_vector (std::vector<double> vector, std::string name, std::string units);
@@ -27,6 +27,17 @@ std::vector<double> vector_mult (Matrix matrix, std::vector<double> vector);
 
 Matrix matrix_mult (Matrix matrix_left, Matrix matrix_right);
 
+Matrix calculate_adjoint (Matrix matrix);
+
+Matrix obtain_submatrix (Matrix matrix, int row, int column);
+
+double calculate_determinant (Matrix matrix);
+
+Matrix matrix_inverse (Matrix matrix);
+
+Matrix calculate_co_factor_matrix (Matrix matrix);
+
+std::vector<double> solve_linear_system (Matrix A, std::vector<double> b);
 }
 
 namespace StressTransformation
@@ -49,6 +60,12 @@ Matrix calculate_modulus_transform_on_to_off(double angle, Matrix Q);
 namespace ComplianceTransform
 {
 Matrix calculate_compliance_transform_on_to_off(double angle, Matrix S);
+}
+
+namespace OverallModulus
+{
+Matrix calculate_overall_in_plane_modulus(std::vector<AllParameters> parameters_vector, Matrix S);
+Matrix calculate_overall_in_plane_compliance(std::vector<AllParameters> parameters_vector, Matrix S);
 }
 
 

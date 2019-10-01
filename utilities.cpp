@@ -81,6 +81,153 @@ Matrix matrix_mult (Matrix matrix_left, Matrix matrix_right)
 
     return result;
 }
+
+//Matrix matrix_inverse (Matrix matrix)
+//{
+//    const unsigned int dim = matrix[0].size();
+//    assert (dim == matrix.size());
+//
+//    Matrix inv_matrix;
+//    inv_matrix.resize(dim,std::vector<double>(dim));
+//
+//
+//
+//    return inv_matrix;
+//}
+
+//std::vector<double> solve_linear_system (Matrix A, std::vector<double> b)
+//{
+//    std::vector<double> x;
+//    assert (A.size() == A[0].size());
+//    assert (A[0].size() == b.size());
+//
+//    x.resize (A.size());
+//
+//
+//
+//    return x;
+//}
+
+Matrix obtain_submatrix (Matrix matrix, int row, int column)
+{
+    Matrix submatrix;
+
+    submatrix.resize( matrix.size() - 1,std::vector<double>( matrix[0].size() - 1 )  );
+
+    int submatrix_row = 0;
+
+
+
+    for (int i = 0; i < matrix.size(); ++i)
+    {
+        if (i == row) continue;
+        int submatrix_col = 0;
+        for (int j = 0 ; j < matrix[0].size(); ++j)
+        {
+            if (j == column) continue;
+            submatrix[submatrix_row][submatrix_col] = matrix[i][j];
+            ++submatrix_col;
+        }
+        ++submatrix_row;
+    }
+
+    return submatrix;
+
+}
+
+double calculate_determinant (Matrix matrix)
+{
+    double determinant = 0;
+
+    double dim = matrix.size();
+    assert (matrix.size() == matrix[0].size());
+    assert (dim >= 1);
+
+    if (dim == 1)
+    {
+        return matrix[0][0];
+    }
+    else if (dim == 2)
+    {
+        return (matrix[0][0] * matrix[1][1]) - (matrix[0][1]*matrix[1][0]);
+    }
+
+    else
+    {
+        for (int i = 0; i < matrix.size(); ++i)
+        {
+            int sign = (i % 2 == 0) ? 1 : -1;
+            if (matrix[0][i] == 0) continue;
+            Matrix submatrix = obtain_submatrix(matrix, 0, i);
+            determinant += sign * matrix[0][i]* calculate_determinant(submatrix);
+           // std::cout << "submatrix determinant is " << calculate_determinant(submatrix) << std::endl;
+        }
+        return determinant;
+    }
+
+}
+
+Matrix calculate_co_factor_matrix (Matrix matrix)
+{
+    Matrix co_factor_matrix;
+    assert (matrix.size() == matrix[0].size());
+    co_factor_matrix.resize( matrix.size(),std::vector<double>( matrix[0].size() ) );
+
+    for (int i = 0 ; i < matrix.size(); ++i)
+    {
+        for (int j = 0; j < matrix.size(); ++j)
+        {
+            int sign = ((i + j) % 2 == 0) ? 1: -1;
+            co_factor_matrix[i][j] = sign * calculate_determinant(obtain_submatrix(matrix,i,j));
+        }
+    }
+
+
+    return co_factor_matrix;
+}
+
+Matrix calculate_adjoint (Matrix matrix)
+{
+    Matrix adjoint;
+    assert (matrix.size() == matrix[0].size());
+    adjoint.resize( matrix.size(),std::vector<double>( matrix[0].size() ) );
+
+    for (int i = 0; i < matrix.size(); ++i)
+    {
+        for (int j = 0; j < matrix.size(); ++j)
+        {
+            adjoint[j][i] = matrix[i][j];
+        }
+    }
+    return adjoint;
+}
+
+Matrix matrix_inverse (Matrix matrix)
+{
+    Matrix inverse;
+    assert (matrix.size() == matrix[0].size());
+    inverse.resize( matrix.size(),std::vector<double>( matrix[0].size() ) );
+
+    double tol = 1e-7;
+    double matrix_determinant = calculate_determinant(matrix);
+    assert(std::abs(matrix_determinant) > tol);
+
+    Matrix co_factor_matrix = calculate_co_factor_matrix(matrix);
+
+    Matrix inverse_unscaled = calculate_adjoint(co_factor_matrix);
+
+    for (int i = 0; i < matrix.size(); ++i)
+    {
+        for (int j = 0; j < matrix.size(); ++j)
+        {
+            inverse[i][j] = inverse_unscaled[i][j]/matrix_determinant;
+        }
+    }
+
+    return inverse;
+
+}
+
 }
 
 namespace StressTransformation
@@ -225,6 +372,55 @@ Matrix calculate_compliance_transform_on_to_off(double angle, Matrix S)
     S_out[2][2] = U5 - 4 * U3 * std::cos(4*angle);
 
     return S_out;
+}
+
+}
+
+namespace OverallModulus
+{
+Matrix calculate_overall_in_plane_modulus(std::vector<AllParameters> parameters_vector, Matrix S)
+{
+    double V1, V2, V3, V4;
+    double total_height = 0;
+    for (int i = 0; i < parameters_vector.size(); ++i)
+    {
+        double angle = parameters_vector[i].angle * PI/180.0;
+        double h = parameters_vector[i].thickness;
+        V1 += std::cos(2* angle) * h;
+        V2 += std::cos(4*angle)*h;
+        V3 += std::sin(2*angle)*h;
+        V4 += std::sin(4*angle)*h;
+        total_height += h;
+    }
+
+
+    double U1, U2, U3, U4, U5;
+    U1 = 1./8. * (3*S[0][0] + 3 * S[1][1] + 2 * S[0][1] + S[2][2]);
+    U2 = 1./2. * (S[0][0] - S[1][1]);
+    U3 = 1./8. * (S[0][0] + S[1][1] - 2* S[0][1] - S[2][2]);
+    U4 = 1./8. * (S[0][0] + S[1][1] + 6* S[0][1] - S[2][2]);
+    U5 = 1./2. * (S[0][0] + S[1][1] - 2* S[0][1] + S[2][2]);
+
+    Matrix A;
+    A.resize(3,std::vector<double>(3));
+    A[0][0] = (U1 * total_height) + (U2 * V1) + (U3 * V2);
+    A[1][1] = (U1 * total_height) - (U2 * V1) + (U3 * V2);
+    A[0][1] = (U4 * total_height) - (U3 * V2);
+    A[2][2] = (U5 * total_height) - (U3 * V2);
+    A[0][2] = (0.5 * U2 * V3) + (U3 * V4);
+    A[1][2] = (0.5 * U2 * V3) - (U3 * V4);
+    A[2][1] = A[1][2];
+    A[1][0] = A[0][1];
+    A[2][0] = A[0][2];
+
+    return A;
+}
+
+Matrix calculate_overall_in_plane_compliance(std::vector<AllParameters> parameters_vector, Matrix S)
+{
+    Matrix A = calculate_overall_in_plane_modulus(parameters_vector,S);
+    Matrix a = MatrixOperations::matrix_inverse(A);
+    return a;
 }
 
 }
