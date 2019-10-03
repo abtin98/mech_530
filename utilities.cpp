@@ -378,7 +378,7 @@ Matrix calculate_compliance_transform_on_to_off(double angle, Matrix S)
 
 namespace OverallModulus
 {
-Matrix calculate_overall_in_plane_modulus(std::vector<AllParameters> parameters_vector, Matrix S)
+Matrix calculate_overall_in_plane_modulus(std::vector<AllParameters> parameters_vector, Matrix Q)
 {
     double V1, V2, V3, V4;
     double total_height = 0;
@@ -395,11 +395,11 @@ Matrix calculate_overall_in_plane_modulus(std::vector<AllParameters> parameters_
 
 
     double U1, U2, U3, U4, U5;
-    U1 = 1./8. * (3*S[0][0] + 3 * S[1][1] + 2 * S[0][1] + S[2][2]);
-    U2 = 1./2. * (S[0][0] - S[1][1]);
-    U3 = 1./8. * (S[0][0] + S[1][1] - 2* S[0][1] - S[2][2]);
-    U4 = 1./8. * (S[0][0] + S[1][1] + 6* S[0][1] - S[2][2]);
-    U5 = 1./2. * (S[0][0] + S[1][1] - 2* S[0][1] + S[2][2]);
+    U1 = 1./8. * (3.*Q[0][0] + 3. * Q[1][1] + 2. * Q[0][1] + 4. * Q[2][2]);
+    U2 = 1./2. * (Q[0][0] - Q[1][1]);
+    U3 = 1./8. * (Q[0][0] + Q[1][1] - 2.* Q[0][1] - 4. * Q[2][2]);
+    U4 = 1./8. * (Q[0][0] + Q[1][1] + 6.* Q[0][1] - 4. * Q[2][2]);
+    U5 = 1./8. * (Q[0][0] + Q[1][1] - 2.* Q[0][1] + 4. * Q[2][2]);
 
     Matrix A;
     A.resize(3,std::vector<double>(3));

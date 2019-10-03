@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
 
 	for (int i = 0; i < n; ++i)
 	{
-	    AllParameters all_parameters(thickness,angle[i],"E_glass_epoxy");
+	    AllParameters all_parameters(thickness,angle[i],"AS4_PEEK");
 	    all_parameters_vector.push_back(all_parameters);
 	}
 

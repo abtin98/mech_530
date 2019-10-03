@@ -22,7 +22,7 @@ applied_stress_vector(applied_stress_vector)
         layer.push_back(composite);
     }
 
-    A = OverallModulus::calculate_overall_in_plane_modulus(all_parameters_input, layer[0].on_axis_S_matrix);
+    A = OverallModulus::calculate_overall_in_plane_modulus(all_parameters_input, layer[0].on_axis_Q_matrix);
     a = MatrixOperations::matrix_inverse(A);
 
     off_axis_strain = MatrixOperations::vector_mult (a, applied_stress_vector);

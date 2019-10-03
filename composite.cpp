@@ -141,7 +141,7 @@ void Composite::calculate_stresses_and_strains (std::vector<double> off_axis_str
 
     on_axis_strain = MatrixOperations::vector_mult(strain_transform_off_to_on, off_axis_strain);
     off_axis_stress = MatrixOperations::vector_mult(off_axis_Q_matrix, off_axis_strain);
-    on_axis_stress = MatrixOperations::vector_mult(on_axis_Q_matrix, off_axis_strain);
+    on_axis_stress = MatrixOperations::vector_mult(on_axis_Q_matrix, on_axis_strain);
 
 }
 
