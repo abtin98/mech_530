@@ -15,8 +15,9 @@ int main(int argc, char **argv) {
 
     std::cout << "Example 1:" << std::endl;
 	double thickness = 0.125;
-	std::vector<double> applied_stress_vector = {3.5, -1.99, 0.9};
-	std::vector<double> angle = {0.0, 0.0, 20.0, -20.0, 45.0, -45.0, 90.0, 90.0, 90.0, 90.0, -45.0, 45.0, -20.0, 20.0, 0.0, 0.0};
+	std::vector<double> applied_stress_vector = {0.0, 0.0, 0.0};
+	std::vector<double> applied_moment_vector = {-2.4525, 0.0, 0.0};
+	std::vector<double> angle = {0.0, 0.0, 90.0, 30.0, -30.0, -30.0, 30.0, 90.0, 0.0, 0.0};
 	int n = angle.size();
 	std::vector<AllParameters> all_parameters_vector;
 
@@ -26,8 +27,8 @@ int main(int argc, char **argv) {
 	    all_parameters_vector.push_back(all_parameters);
 	}
 
-	double z_c = 0.0;
-    Laminate laminate (all_parameters_vector, z_c, applied_stress_vector);
+	double z_c = 5.0;
+    Laminate laminate (all_parameters_vector, z_c, applied_stress_vector, applied_moment_vector);
     laminate.output_all();
 
     }

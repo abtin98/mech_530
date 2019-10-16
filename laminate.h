@@ -15,9 +15,10 @@ class Laminate
 {
 public:
     Laminate();
-    Laminate(std::vector<AllParameters> all_parameters_vector, double z_c, std::vector<double> applied_stress_vector);
+    Laminate(std::vector<AllParameters> all_parameters_vector, double z_c, std::vector<double> applied_stress_vector, std::vector<double> applied_moment_vector);
     double z_c;
     std::vector<double> applied_stress_vector;
+    std::vector<double> applied_moment_vector;
     std::vector<Composite> layer;
     std::vector<AllParameters> all_parameters_input;
     void output_all();
@@ -25,8 +26,13 @@ public:
     using Matrix = std::vector<std::vector<double>>;
     Matrix A;
     Matrix a;
+    Matrix D;
+    Matrix d;
 
-    std::vector<double> off_axis_strain;
+    std::vector<double> off_axis_in_plane_strain;
+    std::vector<double> curvature;
+
+    std::vector<double> ply_z_coordinate;
 
 };
 

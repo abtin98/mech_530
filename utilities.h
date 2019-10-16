@@ -38,6 +38,8 @@ Matrix matrix_inverse (Matrix matrix);
 Matrix calculate_co_factor_matrix (Matrix matrix);
 
 std::vector<double> solve_linear_system (Matrix A, std::vector<double> b);
+
+std::vector<double> v_add (std::vector<double> v1, std::vector<double> v2);
 }
 
 namespace StressTransformation
@@ -64,8 +66,13 @@ Matrix calculate_compliance_transform_on_to_off(double angle, Matrix S);
 
 namespace OverallModulus
 {
-Matrix calculate_overall_in_plane_modulus(std::vector<AllParameters> parameters_vector, Matrix S);
-Matrix calculate_overall_in_plane_compliance(std::vector<AllParameters> parameters_vector, Matrix S);
+Matrix calculate_overall_in_plane_modulus(std::vector<AllParameters> parameters_vector, Matrix Q);
+Matrix calculate_overall_in_plane_compliance(std::vector<AllParameters> parameters_vector, Matrix Q);
+}
+
+namespace FlexuralModulus
+{
+Matrix calculate_flexural_modulus (std::vector<AllParameters> parameters_vector, Matrix Q, double z_c);
 }
 
 

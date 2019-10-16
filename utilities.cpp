@@ -228,6 +228,18 @@ Matrix matrix_inverse (Matrix matrix)
 
 }
 
+std::vector<double> v_add (std::vector<double> v1, std::vector<double> v2)
+{
+    assert (v1.size() == v2.size());
+    std::vector<double> sum;
+    sum.resize(v1.size());
+    for (int i = 0; i < v1.size(); ++i)
+    {
+        sum[i] = v1[i] + v2[i];
+    }
+    return sum;
+}
+
 }
 
 namespace StressTransformation
@@ -423,5 +435,55 @@ Matrix calculate_overall_in_plane_compliance(std::vector<AllParameters> paramete
     return a;
 }
 
+}
+
+namespace FlexuralModulus
+{
+Matrix calculate_flexural_modulus (std::vector<AllParameters> parameters_vector, Matrix Q, double z_c)
+{
+    Matrix D;
+    D.resize(3,std::vector<double>(3));
+
+    double U1, U2, U3, U4, U5;
+    U1 = 1./8. * (3.*Q[0][0] + 3. * Q[1][1] + 2. * Q[0][1] + 4. * Q[2][2]);
+    U2 = 1./2. * (Q[0][0] - Q[1][1]);
+    U3 = 1./8. * (Q[0][0] + Q[1][1] - 2.* Q[0][1] - 4. * Q[2][2]);
+    U4 = 1./8. * (Q[0][0] + Q[1][1] + 6.* Q[0][1] - 4. * Q[2][2]);
+    U5 = 1./8. * (Q[0][0] + Q[1][1] - 2.* Q[0][1] + 4. * Q[2][2]);
+
+    double V1, V2, V3, V4;
+
+    std::vector<double> angle;
+    angle.resize(parameters_vector.size()/2);
+    std::vector<std::vector<double>> height;
+    height.resize(angle.size(), std::vector<double>(2));
+    double total_height = 2* z_c;
+    for (int i = 0; i < angle.size(); ++i)
+    {
+        total_height += 2* parameters_vector[angle.size() + i].thickness;
+        angle[i] = parameters_vector[angle.size() + i].angle * PI/180.0;
+        height[i][0] = z_c + parameters_vector[angle.size() + i].thickness * i;
+        height[i][1] = z_c + parameters_vector[angle.size() + i].thickness * (i+1);
+
+        V1 += 2.0/3.0 * (std::cos(2.0*angle[i]) * ( std::pow(height[i][1],3) - std::pow(height[i][0],3) ) );
+        V2 += 2.0/3.0 * (std::cos(4.0*angle[i]) * ( std::pow(height[i][1],3) - std::pow(height[i][0],3) ) );;
+        V3 += 2.0/3.0 * (std::sin(2.0*angle[i]) * ( std::pow(height[i][1],3) - std::pow(height[i][0],3) ) );;
+        V4 += 2.0/3.0 * (std::sin(4.0*angle[i]) * ( std::pow(height[i][1],3) - std::pow(height[i][0],3) ) );;
+    }
+
+    double z_c_star = 2.0 * z_c / total_height;
+    double h_star = (1 - std::pow(z_c_star,3)) * std::pow(total_height,3) / 12.0;
+    D[0][0] = U1 * h_star + U2 * V1 + U3 * V2;
+    D[1][1] = U1 * h_star - U2 * V1 + U3 * V2;
+    D[0][1] = U4 * h_star - U3 * V2;
+    D[2][2] = U5 * h_star - U3 * V2;
+    D[0][2] = 0.5 * U2 * V3 + U3 * V4;
+    D[1][2] = 0.5 * U2 * V3 - U3 * V4;
+    D[2][1] = D[1][2];
+    D[2][0] = D[0][2];
+    D[1][0] = D[0][1];
+
+    return D;
+}
 }
 

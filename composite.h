@@ -31,11 +31,30 @@ public:
     Matrix off_axis_S_matrix;
     Matrix off_axis_Q_matrix;
 
-    std::vector<double> off_axis_stress;
-    std::vector<double> on_axis_stress;
-    std::vector<double> on_axis_strain;
+    //std::vector<double> off_axis_stress;
+    //std::vector<double> on_axis_stress;
+    //std::vector<double> on_axis_strain;
 
-    void calculate_stresses_and_strains (std::vector<double> off_axis_strain);
+    //off axis strains
+    std::vector<double> off_axis_strain_top;
+    std::vector<double> off_axis_strain_bottom;
+
+    //on axis strains
+    std::vector<double> on_axis_strain_top;
+    std::vector<double> on_axis_strain_bottom;
+
+    //off axis stresses
+    std::vector<double> off_axis_stress_top;
+    std::vector<double> off_axis_stress_bottom;
+
+    //on axis stresses
+    std::vector<double> on_axis_stress_top;
+    std::vector<double> on_axis_stress_bottom;
+
+
+
+
+    void calculate_stresses_and_strains (std::vector<double> off_axis_in_plane_strain, std::vector<double> curvature, double z_bottom);
 
 
 private:
