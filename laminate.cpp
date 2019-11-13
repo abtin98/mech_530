@@ -61,6 +61,30 @@ applied_moment_vector(applied_moment_vector)
     }
 }
 
+void Laminate::perform_failure_analysis()
+{
+    std::cout << "FAILURE ANALYSIS:" << std::endl;
+    std::cout << "Maximum Stress Analysis" << std::endl;
+    std::vector<std::vector<double>> R_top_ms, R_bottom_ms, //max stress
+                                     R_top_tw, R_bottom_tw, //tsai-wu
+                                     R_top_h, R_bottom_h; //hashin
+
+    R_top_ms = FailureAnalysis::MaximumStress::calculate_safety_values_top(all_parameters_input,layer);
+    R_bottom_ms = FailureAnalysis::MaximumStress::calculate_safety_values_bottom(all_parameters_input,layer);
+    R_top_tw = FailureAnalysis::TsaiWu::calculate_safety_values_top(all_parameters_input,layer);
+    R_bottom_tw = FailureAnalysis::TsaiWu::calculate_safety_values_bottom(all_parameters_input,layer);
+    R_top_h = FailureAnalysis::Hashin::calculate_safety_values_top(all_parameters_input,layer);
+    R_bottom_h = FailureAnalysis::Hashin::calculate_safety_values_bottom(all_parameters_input,layer);
+
+    MatrixOperations::output_matrix(R_top_ms, "MS TOP","");
+    MatrixOperations::output_matrix(R_bottom_ms,"MS BOTTOM","");
+    MatrixOperations::output_matrix(R_top_tw,"TSAI-WU TOP","");
+    MatrixOperations::output_matrix(R_bottom_tw,"TSAI-WU BOTTOM","");
+    MatrixOperations::output_matrix(R_top_h,"HASHIN TOP","");
+    MatrixOperations::output_matrix(R_bottom_h,"HASHIN BOTTOM","");
+
+}
+
 void Laminate::output_all()
 {
     std::cout << "OUTPUT" << std::endl;
@@ -81,6 +105,8 @@ void Laminate::output_all()
     {
         layer[i].output_all(i);
     }
+
+    perform_failure_analysis();
 }
 
 

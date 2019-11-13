@@ -23,6 +23,8 @@ public:
     std::vector<AllParameters> all_parameters_input;
     void output_all();
 
+    void perform_failure_analysis();
+
     using Matrix = std::vector<std::vector<double>>;
     Matrix A;
     Matrix a;

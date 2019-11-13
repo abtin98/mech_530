@@ -487,3 +487,351 @@ Matrix calculate_flexural_modulus (std::vector<AllParameters> parameters_vector,
 }
 }
 
+namespace FailureAnalysis
+{
+namespace MaximumStress
+{
+Matrix calculate_safety_values_bottom (std::vector<AllParameters> all_parameters_input, std::vector<Composite> layer)
+{
+    Matrix R;
+    R.resize(all_parameters_input.size(),std::vector<double>(5));
+    //R = 0;
+    for (int i = 0 ; i < all_parameters_input.size(); ++i)
+    {
+        R[i][0] = 0;
+        R[i][1] = 0;
+        R[i][2] = 0;
+        R[i][3] = 0;
+        R[i][4] = 0;
+        if (layer[i].on_axis_stress_bottom[0] > 0) //sigma_x
+        {
+            R[i][0] = all_parameters_input[i].X_t / layer[i].on_axis_stress_bottom[0];
+        }
+        else if (layer[i].on_axis_stress_bottom[0] < 0)
+        {
+            R[i][1] = -all_parameters_input[i].X_c / layer[i].on_axis_stress_bottom[0];
+        }
+
+        if (layer[i].on_axis_stress_bottom[1]> 0) //sigma y
+        {
+            R[i][2] = all_parameters_input[i].Y_t / layer[i].on_axis_stress_bottom[1];
+        }
+        else if (layer[i].on_axis_stress_bottom [1]< 0)
+        {
+            R[i][3] = -all_parameters_input[i].Y_t / layer[i].on_axis_stress_bottom[1];
+        }
+
+        R[i][4] = std::abs(all_parameters_input[i].S_c)/layer[i].on_axis_stress_bottom[2];
+    }
+    return R;
+}
+
+Matrix calculate_safety_values_top(std::vector<AllParameters> all_parameters_input, std::vector<Composite> layer)
+{
+    Matrix R;
+    R.resize(all_parameters_input.size(),std::vector<double>(5));
+    //R = 0;
+    for (int i = 0 ; i < all_parameters_input.size(); ++i)
+    {
+        R[i][0] = 0;
+        R[i][1] = 0;
+        R[i][2] = 0;
+        R[i][3] = 0;
+        R[i][4] = 0;
+        if (layer[i].on_axis_stress_top[0] > 0) //sigma_x
+        {
+            R[i][0] = all_parameters_input[i].X_t / layer[i].on_axis_stress_top[0];
+        }
+        else if (layer[i].on_axis_stress_top[0] < 0)
+        {
+            R[i][1] = -all_parameters_input[i].X_c / layer[i].on_axis_stress_top[0];
+        }
+
+        if (layer[i].on_axis_stress_top[1]> 0) //sigma y
+        {
+            R[i][2] = all_parameters_input[i].Y_t / layer[i].on_axis_stress_top[1];
+        }
+        else if (layer[i].on_axis_stress_top [1]< 0)
+        {
+            R[i][3] = -all_parameters_input[i].Y_t / layer[i].on_axis_stress_top[1];
+        }
+
+        R[i][4] = std::abs(all_parameters_input[i].S_c)/layer[i].on_axis_stress_top[2];
+    }
+    return R;
+}
+
+}
+namespace TsaiWu
+{
+Matrix calculate_safety_values_bottom(std::vector<AllParameters> all_parameters_input, std::vector<Composite> layer)
+{
+    double F_xx, F_x, F_yy, F_y, F_xy, F_ss;
+    double X_t,X_c,Y_t,Y_c,S_c;
+
+    X_t = all_parameters_input[0].X_t;
+    X_c = all_parameters_input[0].X_c;
+    Y_t = all_parameters_input[0].Y_t;
+    Y_c = all_parameters_input[0].Y_c;
+    S_c = all_parameters_input[0].S_c;
+
+    F_xx = 1./(X_c * X_t);
+    F_x = 1./(X_t) - 1./(X_c);
+
+    F_yy = 1./(Y_c * Y_t);
+    F_y = 1./(Y_t) - 1./(Y_c);
+
+    F_ss = 1./(S_c*S_c);
+
+    double F_xy_star = -0.5;
+
+    F_xy = F_xy_star * std::sqrt(F_xx*F_yy);
+
+
+    Matrix R;
+    R.resize(all_parameters_input.size(),std::vector<double>(2));
+
+    for (int i = 0; i < all_parameters_input.size(); ++ i)
+    {
+        R[i][0] = 0;
+        R[i][1] = 0;
+        double A, B, C;
+        C = -1.0;
+        double sigma_x = layer[i].on_axis_stress_bottom[0];
+        double sigma_y = layer[i].on_axis_stress_bottom[1];
+        double sigma_s = layer[i].on_axis_stress_bottom[2];
+        A = F_xx * sigma_x * sigma_x +
+            F_yy * sigma_y * sigma_y +
+            F_ss * sigma_s * sigma_s +
+            F_xy * sigma_x * sigma_y +
+            F_xy * sigma_y * sigma_x;
+
+        B = F_x * sigma_x + F_y * sigma_y;
+
+        R[i] = Arithmetics::solve_quadratic_eqn(A,B,C);
+    }
+    return R;
+}
+Matrix calculate_safety_values_top(std::vector<AllParameters> all_parameters_input, std::vector<Composite> layer)
+{
+    double F_xx, F_x, F_yy, F_y, F_xy, F_ss;
+    double X_t,X_c,Y_t,Y_c,S_c;
+
+    X_t = all_parameters_input[0].X_t;
+    X_c = all_parameters_input[0].X_c;
+    Y_t = all_parameters_input[0].Y_t;
+    Y_c = all_parameters_input[0].Y_c;
+    S_c = all_parameters_input[0].S_c;
+
+    F_xx = 1./(X_c * X_t);
+    F_x = 1./(X_t) - 1./(X_c);
+
+    F_yy = 1./(Y_c * Y_t);
+    F_y = 1./(Y_t) - 1./(Y_c);
+
+    F_ss = 1./(S_c*S_c);
+
+    double F_xy_star = -0.5;
+
+    F_xy = F_xy_star * std::sqrt(F_xx*F_yy);
+
+
+    Matrix R;
+    R.resize(all_parameters_input.size(),std::vector<double>(2));
+
+    for (int i = 0; i < all_parameters_input.size(); ++ i)
+    {
+        R[i][0] = 0;
+        R[i][1] = 0;
+        double A, B, C;
+        C = -1.0;
+        double sigma_x = layer[i].on_axis_stress_top[0];
+        double sigma_y = layer[i].on_axis_stress_top[1];
+        double sigma_s = layer[i].on_axis_stress_top[2];
+        A = F_xx * sigma_x * sigma_x +
+            F_yy * sigma_y * sigma_y +
+            F_ss * sigma_s * sigma_s +
+            F_xy * sigma_x * sigma_y +
+            F_xy * sigma_y * sigma_x;
+
+        B = F_x * sigma_x + F_y * sigma_y;
+
+        R[i] = Arithmetics::solve_quadratic_eqn(A,B,C);
+    }
+    return R;
+}
+}
+namespace Hashin
+{
+Matrix calculate_safety_values_bottom (std::vector<AllParameters> all_parameters_input, std::vector<Composite> layer)
+{
+    Matrix R;
+    R.resize(all_parameters_input.size(),std::vector<double>(4));
+    //R = 0;
+    for (int i = 0 ; i < all_parameters_input.size(); ++i)
+    {
+        R[i][0] = 0;
+        R[i][1] = 0;
+        R[i][2] = 0;
+        R[i][3] = 0;
+        if (layer[i].on_axis_stress_bottom[0] > 0) //sigma_x
+        {
+            double sigma_x_ratio = layer[i].on_axis_stress_bottom[0]/all_parameters_input[i].X_t;
+            double sigma_s_ratio = layer[i].on_axis_stress_bottom[2]/all_parameters_input[i].S_c;
+
+            sigma_x_ratio = sigma_x_ratio * sigma_x_ratio;
+            sigma_s_ratio = sigma_s_ratio * sigma_s_ratio;
+            R[i][0] = std::sqrt(1./(sigma_x_ratio + sigma_s_ratio));
+        }
+        else if (layer[i].on_axis_stress_bottom[0] < 0)
+        {
+            R[i][1] = -all_parameters_input[i].X_c / layer[i].on_axis_stress_bottom[0];
+        }
+
+        if (layer[i].on_axis_stress_bottom[1]> 0) //sigma y
+        {
+            double sigma_y_ratio = layer[i].on_axis_stress_bottom[1]/all_parameters_input[i].Y_t;
+            double sigma_s_ratio = layer[i].on_axis_stress_bottom[2]/all_parameters_input[i].S_c;
+
+            sigma_y_ratio = sigma_y_ratio * sigma_y_ratio;
+            sigma_s_ratio = sigma_s_ratio * sigma_s_ratio;
+            R[i][2] = std::sqrt(1./(sigma_y_ratio + sigma_s_ratio));
+        }
+        else if (layer[i].on_axis_stress_bottom [1]< 0)
+        {
+            double A, B, C;
+            C = -1.0;
+            double sigma_y_ratio = 0.5 * layer[i].on_axis_stress_bottom[1]/all_parameters_input[i].S_c;
+            double sigma_s_ratio = layer[i].on_axis_stress_bottom[2]/all_parameters_input[i].S_c;
+
+            sigma_y_ratio = sigma_y_ratio * sigma_y_ratio;
+            sigma_s_ratio = sigma_s_ratio * sigma_s_ratio;
+
+            A = sigma_y_ratio + sigma_s_ratio;
+
+            double y_c_s_ratio = all_parameters_input[i].Y_c/(2.0*all_parameters_input[i].S_c);
+            y_c_s_ratio = y_c_s_ratio * y_c_s_ratio;
+
+            double sigma_y_y_c_ratio = layer[i].on_axis_stress_bottom[1]/all_parameters_input[i].Y_c;
+
+            B = (y_c_s_ratio - 1.0) * sigma_y_y_c_ratio;
+
+            std::vector<double> solution = Arithmetics::solve_quadratic_eqn(A,B,C);
+            //std::cout << solution[0] << " and " << solution[1] << std::endl;
+
+            R[i][3] = std::max(solution[0],solution[1]);//not sure if it should be max or min
+        }
+    }
+    return R;
+}
+
+Matrix calculate_safety_values_top(std::vector<AllParameters> all_parameters_input, std::vector<Composite> layer)
+{
+    Matrix R;
+    R.resize(all_parameters_input.size(),std::vector<double>(4));
+    //R = 0;
+    for (int i = 0 ; i < all_parameters_input.size(); ++i)
+    {
+        R[i][0] = 0;
+        R[i][1] = 0;
+        R[i][2] = 0;
+        R[i][3] = 0;
+        if (layer[i].on_axis_stress_top[0] > 0) //sigma_x
+        {
+            double sigma_x_ratio = layer[i].on_axis_stress_top[0]/all_parameters_input[i].X_t;
+            double sigma_s_ratio = layer[i].on_axis_stress_top[2]/all_parameters_input[i].S_c;
+
+            sigma_x_ratio = sigma_x_ratio * sigma_x_ratio;
+            sigma_s_ratio = sigma_s_ratio * sigma_s_ratio;
+            R[i][0] = std::sqrt(1./(sigma_x_ratio + sigma_s_ratio));
+        }
+        else if (layer[i].on_axis_stress_top[0] < 0)
+        {
+            R[i][1] = -all_parameters_input[i].X_c / layer[i].on_axis_stress_top[0];
+        }
+
+        if (layer[i].on_axis_stress_top[1]> 0) //sigma y
+        {
+            double sigma_y_ratio = layer[i].on_axis_stress_top[1]/all_parameters_input[i].Y_t;
+            double sigma_s_ratio = layer[i].on_axis_stress_top[2]/all_parameters_input[i].S_c;
+
+            sigma_y_ratio = sigma_y_ratio * sigma_y_ratio;
+            sigma_s_ratio = sigma_s_ratio * sigma_s_ratio;
+            R[i][2] = std::sqrt(1./(sigma_y_ratio + sigma_s_ratio));
+        }
+        else if (layer[i].on_axis_stress_top [1]< 0)
+        {
+            double A, B, C;
+            C = -1.0;
+            double sigma_y_ratio = 0.5 * layer[i].on_axis_stress_top[1]/all_parameters_input[i].S_c;
+            double sigma_s_ratio = layer[i].on_axis_stress_top[2]/all_parameters_input[i].S_c;
+
+            sigma_y_ratio = sigma_y_ratio * sigma_y_ratio;
+            sigma_s_ratio = sigma_s_ratio * sigma_s_ratio;
+
+            A = sigma_y_ratio + sigma_s_ratio;
+
+            double y_c_s_ratio = all_parameters_input[i].Y_c/(2.0*all_parameters_input[i].S_c);
+            y_c_s_ratio = y_c_s_ratio * y_c_s_ratio;
+
+            double sigma_y_y_c_ratio = layer[i].on_axis_stress_top[1]/all_parameters_input[i].Y_c;
+
+            B = (y_c_s_ratio - 1.0) * sigma_y_y_c_ratio;
+
+            std::vector<double> solution = Arithmetics::solve_quadratic_eqn(A,B,C);
+           // std::cout << solution[0] << " and " << solution[1] << std::endl;
+            R[i][3] = std::max(solution[0],solution[1]);//not sure if it should be max or min
+        }
+    }
+    return R;
+}
+}
+}
+
+namespace Arithmetics
+{
+double maximum (std::vector<double> values)
+{
+    double max = values[0];
+
+    for (int i = 0; i < values.size(); ++i)
+    {
+        if (values[i] >= max)
+        {
+            max = values[i];
+        }
+    }
+    return max;
+}
+double minimum (std::vector<double> values)
+{
+    double min = values[0];
+
+    for (int i = 0; i < values.size(); ++i)
+    {
+        if (values[i] <= min)
+        {
+            min = values[i];
+        }
+    }
+    return min;
+}
+
+std::vector<double> solve_quadratic_eqn (double a, double b, double c)
+{
+    std::vector<double> solution;
+    double discriminant  = b * b - (4.0*a*c);
+    if (discriminant >= 0.0)
+    {
+        solution.resize(2);
+        solution[0] = (-b - std::sqrt(discriminant)) / (2.0*a);
+        solution[1] = (-b + std::sqrt(discriminant)) / (2.0*a);
+    }
+    else if (discriminant <= 0.0)
+    {
+
+    }
+    return solution;
+}
+}
+

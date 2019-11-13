@@ -13,6 +13,7 @@
 #include <vector>
 #include <assert.h>
 #include "properties.h"
+#include "composite.h"
 
 
 using Matrix = std::vector<std::vector<double>>;
@@ -73,6 +74,34 @@ Matrix calculate_overall_in_plane_compliance(std::vector<AllParameters> paramete
 namespace FlexuralModulus
 {
 Matrix calculate_flexural_modulus (std::vector<AllParameters> parameters_vector, Matrix Q, double z_c);
+}
+
+namespace FailureAnalysis
+{
+namespace MaximumStress
+{
+Matrix calculate_safety_values_bottom (std::vector<AllParameters> all_parameters_input, std::vector<Composite> layer);
+Matrix calculate_safety_values_top (std::vector<AllParameters> all_parameters_input, std::vector<Composite> layer);
+}
+namespace TsaiWu
+{
+Matrix calculate_safety_values_bottom(std::vector<AllParameters> all_parameters_input, std::vector<Composite> layer);
+Matrix calculate_safety_values_top(std::vector<AllParameters> all_parameters_input, std::vector<Composite> layer);
+
+}
+namespace Hashin
+{
+Matrix calculate_safety_values_bottom(std::vector<AllParameters> all_parameters_input, std::vector<Composite> layer);
+Matrix calculate_safety_values_top(std::vector<AllParameters> all_parameters_input, std::vector<Composite> layer);
+
+}
+}
+
+namespace Arithmetics
+{
+double maximum (std::vector<double> values);
+double minimum (std::vector<double> values);
+std::vector<double> solve_quadratic_eqn (double a, double b, double c);
 }
 
 
