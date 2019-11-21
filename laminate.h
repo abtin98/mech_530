@@ -23,7 +23,7 @@ public:
     std::vector<AllParameters> all_parameters_input;
     void output_all();
 
-    void perform_failure_analysis();
+    double perform_failure_analysis(bool is_positive);
 
     using Matrix = std::vector<std::vector<double>>;
     Matrix A;
@@ -33,8 +33,9 @@ public:
 
     std::vector<double> off_axis_in_plane_strain;
     std::vector<double> curvature;
-
     std::vector<double> ply_z_coordinate;
+
+    double find_min_safety_factor(bool isPositive);
 
 };
 

@@ -518,7 +518,7 @@ Matrix calculate_safety_values_bottom (std::vector<AllParameters> all_parameters
         }
         else if (layer[i].on_axis_stress_bottom [1]< 0)
         {
-            R[i][3] = -all_parameters_input[i].Y_t / layer[i].on_axis_stress_bottom[1];
+            R[i][3] = -all_parameters_input[i].Y_c / layer[i].on_axis_stress_bottom[1];
         }
 
         R[i][4] = std::abs(all_parameters_input[i].S_c)/layer[i].on_axis_stress_bottom[2];
@@ -553,7 +553,7 @@ Matrix calculate_safety_values_top(std::vector<AllParameters> all_parameters_inp
         }
         else if (layer[i].on_axis_stress_top [1]< 0)
         {
-            R[i][3] = -all_parameters_input[i].Y_t / layer[i].on_axis_stress_top[1];
+            R[i][3] = -all_parameters_input[i].Y_c / layer[i].on_axis_stress_top[1];
         }
 
         R[i][4] = std::abs(all_parameters_input[i].S_c)/layer[i].on_axis_stress_top[2];
@@ -790,31 +790,98 @@ Matrix calculate_safety_values_top(std::vector<AllParameters> all_parameters_inp
 
 namespace Arithmetics
 {
-double maximum (std::vector<double> values)
+double find_max_vector (std::vector<double> values)
 {
-    double max = values[0];
+    double max = std::abs(values[0]);
 
     for (int i = 0; i < values.size(); ++i)
     {
-        if (values[i] >= max)
+        if (std::abs(values[i]) >= max &&  std::abs(values[i]) > 0.0000000001)
         {
-            max = values[i];
+            max = std::abs(values[i]);
         }
     }
     return max;
 }
-double minimum (std::vector<double> values)
+double find_min_vector (std::vector<double> values)
 {
-    double min = values[0];
+    double min = 500000;
 
     for (int i = 0; i < values.size(); ++i)
     {
-        if (values[i] <= min)
+        if (std::abs(values[i]) <= min && std::abs(values[i]) > 0.0000000001)
         {
-            min = values[i];
+            min = std::abs(values[i]);
         }
     }
     return min;
+}
+
+double find_min_tw_positive(std::vector<std::vector<double>> matrix)
+{
+    double min = 50000000;//std::abs(matrix[0][0]);
+
+    for (int i = 0; i < matrix.size(); ++i)
+    {
+            if (std::abs(matrix[i][1]) < min && std::abs(matrix[i][1]) > 0.0000000001)
+            {
+               // std::cout << min << " is the min" << std::endl;
+                min = std::abs(matrix[i][1]);
+            }
+    }
+
+    return min;
+}
+double find_min_tw_negative(std::vector<std::vector<double>> matrix)
+{
+    double min = 50000000;//std::abs(matrix[0][0]);
+
+    for (int i = 0; i < matrix.size(); ++i)
+    {
+            if (std::abs(matrix[i][0]) < min && std::abs(matrix[i][0]) > 0.0000000001)
+            {
+                //std::cout << min << " is the min" << std::endl;
+                min = std::abs(matrix[i][0]);
+            }
+    }
+
+    return min;
+}
+
+double find_min_matrix (std::vector<std::vector<double>> matrix)
+{
+    double min = 50000000;//std::abs(matrix[0][0]);
+
+    for (int i = 0; i < matrix.size(); ++i)
+    {
+        for (int j = 0; j < matrix[0].size(); ++j)
+        {
+            if (std::abs(matrix[i][j]) < min && std::abs(matrix[i][j]) > 0.0000000001)
+            {
+                //std::cout << min << " is the min" << std::endl;
+                min = std::abs(matrix[i][j]);
+            }
+        }
+    }
+
+    return min;
+}
+
+double find_max_matrix (std::vector<std::vector<double>> matrix)
+{
+    double max = std::abs(matrix[0][0]);
+
+    for (int i = 0; i < matrix.size(); ++i)
+        {
+            for (int j = 0; j < matrix[0].size(); ++j)
+            {
+                if (std::abs(matrix[i][j]) > max && std::abs(matrix[i][j]) > 0.0000000001)
+                {
+                    max = std::abs(matrix[i][j]);
+                }
+            }
+        }
+    return max;
 }
 
 std::vector<double> solve_quadratic_eqn (double a, double b, double c)

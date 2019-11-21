@@ -99,9 +99,14 @@ Matrix calculate_safety_values_top(std::vector<AllParameters> all_parameters_inp
 
 namespace Arithmetics
 {
-double maximum (std::vector<double> values);
-double minimum (std::vector<double> values);
+double find_max_vector (std::vector<double> values);
+double find_min_vector (std::vector<double> values);
 std::vector<double> solve_quadratic_eqn (double a, double b, double c);
+double find_min_matrix (std::vector<std::vector<double>> matrix);
+double find_max_matrix (std::vector<std::vector<double>> matrix);
+
+double find_min_tw_positive(std::vector<std::vector<double>> matrix);
+double find_min_tw_negative(std::vector<std::vector<double>> matrix);
 }
 
 

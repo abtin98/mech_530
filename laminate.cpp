@@ -61,7 +61,7 @@ applied_moment_vector(applied_moment_vector)
     }
 }
 
-void Laminate::perform_failure_analysis()
+double Laminate::perform_failure_analysis(bool is_positive)
 {
     std::cout << "FAILURE ANALYSIS:" << std::endl;
     std::cout << "Maximum Stress Analysis" << std::endl;
@@ -76,6 +76,7 @@ void Laminate::perform_failure_analysis()
     R_top_h = FailureAnalysis::Hashin::calculate_safety_values_top(all_parameters_input,layer);
     R_bottom_h = FailureAnalysis::Hashin::calculate_safety_values_bottom(all_parameters_input,layer);
 
+    double R1, R2, R3, R4, R5, R6;
     MatrixOperations::output_matrix(R_top_ms, "MS TOP","");
     MatrixOperations::output_matrix(R_bottom_ms,"MS BOTTOM","");
     MatrixOperations::output_matrix(R_top_tw,"TSAI-WU TOP","");
@@ -83,6 +84,18 @@ void Laminate::perform_failure_analysis()
     MatrixOperations::output_matrix(R_top_h,"HASHIN TOP","");
     MatrixOperations::output_matrix(R_bottom_h,"HASHIN BOTTOM","");
 
+    R1 =  Arithmetics::find_min_matrix(R_top_ms);
+    R2 = Arithmetics::find_min_matrix(R_bottom_ms);
+    if (is_positive)
+        R3 =  Arithmetics::find_min_tw_positive(R_top_tw);
+    else
+        R3 =  Arithmetics::find_min_tw_positive(R_bottom_tw);
+    R4 = Arithmetics::find_min_matrix(R_top_h);
+    R5 = Arithmetics::find_min_matrix(R_bottom_h);
+
+    std::vector<double> R_vector = {R1, R2, R3, R4, R5};
+
+    return Arithmetics::find_min_vector(R_vector);
 }
 
 void Laminate::output_all()
@@ -106,7 +119,13 @@ void Laminate::output_all()
         layer[i].output_all(i);
     }
 
-    perform_failure_analysis();
+    //bool isPositive = true;
+    //double R_min = perform_failure_analysis(isPositive);
+}
+
+double Laminate::find_min_safety_factor(bool isPositive)
+{
+    return perform_failure_analysis(isPositive);
 }
 
 
